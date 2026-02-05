@@ -1,0 +1,13 @@
+name: wttrbar-cr
+version: 0.1.0
+
+authors:
+  - your-name-here <your-email-here>
+
+targets:
+  wttrbar:
+    main: src/wttrbar.cr
+
+crystal: '>= 1.19.1'
+
+license: MIT
