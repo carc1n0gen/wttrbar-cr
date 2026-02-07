@@ -1,5 +1,5 @@
 module Wttrbar::Constants
-  WEATHER_CODES = {
+  WEATHER_ICONS = {
     "113" => "☀️", # Sunny
     "116" => "🌤️", # Partly cloudly
     "119" => "☁️", # Cloudy
@@ -62,7 +62,7 @@ module Wttrbar::Constants
     "431" => "🌨️",
   }
 
-  WEATHER_CODES_NERD = {
+  WEATHER_ICONS_NERD = {
     "113" => "󰖙", # Sunny
     "116" => "󰖕", # Partly cloudly
     "119" => "󰼰", # Cloudy

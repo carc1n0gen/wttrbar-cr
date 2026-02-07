@@ -55,8 +55,8 @@ module Wttrbar
     current_condition = weather["current_condition"][0]
     observation_time = Time.parse(current_condition["localObsDateTime"].as_s, "%Y-%m-%d %I:%M %p", Time::Location.local)
     weather_desc = current_condition["weatherDesc"][0]["value"]
+    weather_icons = options.nerd ? Constants::WEATHER_ICONS_NERD : Constants::WEATHER_ICONS
     weather_code = current_condition["weatherCode"]
-    weather_icon = options.nerd ? Constants::WEATHER_CODES_NERD[weather_code] : Constants::WEATHER_CODES[weather_code]
     feels_like = options.fahrenheit ? current_condition["FeelsLikeF"] : current_condition["FeelsLikeC"]
     temperature = options.fahrenheit ? current_condition["temp_F"] : current_condition["temp_C"]
     wind_speed = options.mph ? current_condition["windspeedMiles"] : current_condition["windspeedKmph"]
@@ -71,17 +71,78 @@ module Wttrbar
       end
       indicator = current_condition[indicatorKey]
 
-      "#{weather_icon} #{indicator}"
+      "#{weather_icons[weather_code]} #{indicator}"
     end
 
-    tooltip = "<b>#{current_condition[lang.weather_desc][0]["value"]}:</b> #{temperature}°\n"
-    tooltip += "<b>#{lang.feels_like}:</b> #{feels_like}°\n"
-    tooltip += "<b>#{lang.wind}:</b> #{wind_speed} #{options.mph ? "mph" : "km/h"}\n"
-    tooltip += "<b>#{lang.humidity}:</b> #{current_condition["humidity"]}%\n"
-    tooltip += "<b>#{lang.location}:</b> #{nearest_area["areaName"][0]["value"]}, #{nearest_area["region"][0]["value"]}, #{nearest_area["country"][0]["value"]}\n"
-    tooltip += "<b>#{lang.observation_time}:</b> #{options.ampm ? observation_time.to_s("%I:%M %p") : observation_time.to_s("%H:%M")}\n"
+    tooltip = "<b>#{current_condition[lang.weather_desc][0]["value"]}</b> #{temperature}°\n"
+    tooltip += "#{lang.feels_like}: #{feels_like}°\n"
+    tooltip += "#{lang.wind}: #{wind_speed} #{options.mph ? "mph" : "km/h"}\n"
+    tooltip += "#{lang.humidity}: #{current_condition["humidity"]}%\n"
+    tooltip += "#{lang.location}: #{nearest_area["areaName"][0]["value"]}, #{nearest_area["region"][0]["value"]}, #{nearest_area["country"][0]["value"]}\n"
+    tooltip += "#{lang.observation_time}: #{options.ampm ? observation_time.to_s("%I:%M %p") : observation_time.to_s("%H:%M")}\n"
 
-    # TODO: filter forecast to today and future days and add to tooltip
+    today = Time.local
+    forecast = weather["weather"].as_a.select do |day|
+      day_date = Time.parse(day["date"].as_s, "%Y-%m-%d", Time::Location.local)
+      day_date >= today.at_beginning_of_day
+    end
+
+    forecast.each_with_index do |day, idx|
+      tooltip += "\n<b>"
+
+      if idx == 0
+        tooltip += "#{lang.today} #{day["date"]}"
+      elsif idx == 1
+        tooltip += "#{lang.tomorrow} #{day["date"]}"
+      else
+        # TODO: maybe show the day of week, localized (need a third party library)
+        date = day["date"].as_s # TODO: format date
+        tooltip += date
+      end
+    
+      tooltip += "</b>\n"
+
+      max_temp, min_temp = if options.fahrenheit
+        [day["maxtempF"], day["mintempF"]]
+      else
+        [day["maxtempC"], day["mintempC"]]
+      end
+
+      tooltip += begin
+        if options.nerd
+          "󰳡 #{max_temp}° 󰳛 #{min_temp}° "
+        else
+          "⬆️ #{max_temp}° ⬇️ #{min_temp}° "
+        end
+      end
+
+      sunrise, sunset = begin
+        if options.ampm
+          [day["astronomy"][0]["sunrise"], day["astronomy"][0]["sunset"]]
+        else
+          [day["astronomy"][0]["sunrise"], day["astronomy"][0]["sunset"]].map do |time|
+            Time.parse(time.as_s, "%I:%M %p", Time::Location.local).to_s("%H:%M")
+          end
+        end
+      end
+      tooltip += options.nerd ? "󰖜 #{sunrise} 󰖛 #{sunset}\n" : "🌅 #{sunrise} 🌇 #{sunset}\n"
+
+      day["hourly"].as_a.each do |hour|
+        hour_time = begin
+          time = hour["time"].as_s.gsub("00", "")
+          if options.ampm
+            Time.parse(time, "%H", Time::Location.local).to_s("%I %p")
+          else
+            Time.parse(time, "%H", Time::Location.local).to_s("%H:%M")
+          end
+        end
+        hour_icon = weather_icons[hour["weatherCode"]]
+        hour_temp = options.fahrenheit ? hour["tempF"] : hour["tempC"]
+        hour_feels_like = options.fahrenheit ? hour["FeelsLikeF"] : hour["FeelsLikeC"]
+        hour_desc = hour[lang.weather_desc][0]["value"]
+        tooltip += "#{hour_time} #{hour_icon} #{hour_temp}° / #{hour_feels_like}° #{hour_desc}\n"
+      end
+    end
 
     data["tooltip"] = tooltip
     data["class"] = weather_desc.as_s.downcase.split(",")[0].strip.gsub(" ", "_")
