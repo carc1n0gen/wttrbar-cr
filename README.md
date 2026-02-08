@@ -1,15 +1,12 @@
 # wttrbar-cr
 
-CLI tool for generating weather info for waybar using wttr.in - Crystal port of the original wttrbar https://github.com/bjesus/wttrbar
+CLI tool for generating weather info for waybar using wttr.in - Crystal port of the original [wttrbar](https://github.com/bjesus/wttrbar)
 
 ## Installation
 
 - Clone the repo
-
 - cd in to the repo directory
-
 - Build the binary with `shards build`
-
 - cp the binary located in `bin` folder somewhere like ~/.local/bin
 
 ## Usage
