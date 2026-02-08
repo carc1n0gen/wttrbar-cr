@@ -96,6 +96,7 @@ module Wttrbar
         tooltip += "#{lang.tomorrow}, "
       end
     
+      # TODO: look in to localizing the date maybe
       tooltip += "#{day["date"]}</b>\n"
 
       max_temp, min_temp = if options.fahrenheit
