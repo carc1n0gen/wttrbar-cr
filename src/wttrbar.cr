@@ -91,16 +91,12 @@ module Wttrbar
       tooltip += "\n<b>"
 
       if idx == 0
-        tooltip += "#{lang.today} #{day["date"]}"
+        tooltip += "#{lang.today}, "
       elsif idx == 1
-        tooltip += "#{lang.tomorrow} #{day["date"]}"
-      else
-        # TODO: maybe show the day of week, localized (need a third party library)
-        date = day["date"].as_s # TODO: format date
-        tooltip += date
+        tooltip += "#{lang.tomorrow}, "
       end
     
-      tooltip += "</b>\n"
+      tooltip += "#{day["date"]}</b>\n"
 
       max_temp, min_temp = if options.fahrenheit
         [day["maxtempF"], day["mintempF"]]
