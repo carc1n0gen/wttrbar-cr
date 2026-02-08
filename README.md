@@ -4,6 +4,7 @@ CLI tool for generating weather info for waybar using wttr.in - Crystal port of 
 
 ## Installation
 
+- Install crystal and shards
 - Clone the repo
 - cd in to the repo directory
 - Build the binary with `shards build`
